@@ -1,3 +1,14 @@
+###定制插件  author：Mengjuer
+根据项目需要，做了些多选框扩展支持
+
+1.识别“，”“；”输入，和Entry键功能相同
+
+2.支持一次复制多个选项输入，可识别，,;；4种符号。
+
+ps：目前插件未完善，只验证了多选没有问题，但其他模式没有验证，可能有潜在bug。
+
+
+
 # Chosen
 
 Chosen is a library for making long, unwieldy select boxes more user friendly.

@@ -42,7 +42,7 @@ class Chosen extends AbstractChosen
     if @is_multiple
       @container.html '<ul class="chosen-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chosen-drop"><ul class="chosen-results"></ul></div>'
     else
-      @container.html '<a class="chosen-single chosen-default"><span>' + @default_text + '</span><div><b></b></div></a><div class="chosen-drop"><div class="chosen-search"><input type="text" autocomplete="off" /></div><ul class="chosen-results"></ul></div>'
+      @container.html '<a class="chosen-single chosen-default" tabindex="-1"><span>' + @default_text + '</span><div><b></b></div></a><div class="chosen-drop"><div class="chosen-search"><input type="text" autocomplete="off" /></div><ul class="chosen-results"></ul></div>'
 
     @form_field_jq.hide().after @container
     @dropdown = @container.find('div.chosen-drop').first()
@@ -331,6 +331,11 @@ class Chosen extends AbstractChosen
     @selected_item.find("abbr").remove()
 
   result_select: (evt) ->
+
+    if @search_field.val().indexOf(";") > 0 || @search_field.val().indexOf(",") > 0
+      this.multi_result_select(evt)
+      return;
+
     if @result_highlight
       high = @result_highlight
 
@@ -359,7 +364,8 @@ class Chosen extends AbstractChosen
         this.single_set_selected_text(this.choice_label(item))
 
       this.results_hide() unless (evt.metaKey or evt.ctrlKey) and @is_multiple
-      this.show_search_field_default()
+
+      @search_field.val ""
 
       @form_field_jq.trigger "change", {'selected': @form_field.options[item.options_index].value} if @is_multiple || @form_field.selectedIndex != @current_selectedIndex
       @current_selectedIndex = @form_field.selectedIndex
@@ -367,6 +373,39 @@ class Chosen extends AbstractChosen
       evt.preventDefault()
 
       this.search_field_scale()
+
+  multi_result_select: (evt) ->
+    inputText = @search_field.val()
+    inputArray = inputText.split(/[;,，；]/)
+    result_field = ""
+    for value in inputArray 
+      if value == ""
+        continue;
+      value = value.toUpperCase( )
+      exist = false
+      for item in @results_data  
+        item_label = this.choice_label(item)
+        if(typeof(item_label) == "undefined")
+          continue;
+        item_label = item_label.toUpperCase( )
+        itemArray = item_label.split("-")
+        for label in itemArray
+          if label == value
+            exist = true
+            if item.selected == true
+              continue
+            this.choice_build item
+            item.selected = true
+            @form_field.options[item.options_index].selected = true
+            @form_field_jq.trigger "change", {'selected': @form_field.options[item.options_index].value} if @is_multiple || @form_field.selectedIndex != @current_selectedIndex
+            
+            break;
+      if !exist
+        result_field += value + ","
+    this.results_hide() unless (evt.metaKey or evt.ctrlKey) and @is_multiple
+    @search_field.val result_field
+    evt.preventDefault()
+    this.search_field_scale()
 
   single_set_selected_text: (text=@default_text) ->
     if text is @default_text

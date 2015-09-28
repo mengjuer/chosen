@@ -32,7 +32,6 @@ class AbstractChosen
     @display_selected_options = if @options.display_selected_options? then @options.display_selected_options else true
     @display_disabled_options = if @options.display_disabled_options? then @options.display_disabled_options else true
     @include_group_label_in_selected = @options.include_group_label_in_selected || false
-    @max_shown_results = @options.max_shown_results || Number.POSITIVE_INFINITY
 
   set_default_text: ->
     if @form_field.getAttribute("data-placeholder")
@@ -66,16 +65,11 @@ class AbstractChosen
 
   results_option_build: (options) ->
     content = ''
-    shown_results = 0
     for data in @results_data
-      data_content = ''
       if data.group
-        data_content = this.result_add_group data
+        content += this.result_add_group data
       else
-        data_content = this.result_add_option data
-      if data_content != ''
-        shown_results++
-        content += data_content
+        content += this.result_add_option data
 
       # this select logic pins on an awkward flag
       # we can make it better
@@ -84,9 +78,6 @@ class AbstractChosen
           this.choice_build data
         else if data.selected and not @is_multiple
           this.single_set_selected_text(this.choice_label(data))
-
-      if shown_results >= @max_shown_results
-        break
 
     content
 
@@ -239,7 +230,7 @@ class AbstractChosen
         else if not @pending_backstroke
           this.result_clear_highlight()
           this.results_search()
-      when 13
+      when 13, 186, 188
         evt.preventDefault()
         this.result_select(evt) if this.results_showing
       when 27
